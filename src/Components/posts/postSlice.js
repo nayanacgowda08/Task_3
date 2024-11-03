@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { sub } from "date-fns";
+import { comment } from "postcss";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
 
@@ -30,7 +31,7 @@ const initialState = loadState() || [
     comments:[{
       id:'1',
       comment:"first comment",
-      date:sub(new Date(), {minutes:5}.toISOString()),
+      date:sub(new Date(), {minutes:5}).toISOString(),
       replies:[]
     }]
   },
@@ -50,7 +51,7 @@ const initialState = loadState() || [
     comments:[{
       id:'2',
       comment:"second comment",
-      date:sub(new Date(), {minutes:10}.toISOString()),
+      date:sub(new Date(), {minutes:10}).toISOString(),
       replies:[]
     }]
   },
@@ -83,14 +84,24 @@ const postSlice = createSlice({
     commentAdded(state,action){
       const{postId,comment,date,id,replies} = action.payload
       const existingPost=state.find((post)=>post.id===postId)
-      if(existingPost){
-        existingPost.comments.push({id,comment,date,replies});
+      if (!existingPost.comments) {
+        existingPost.comments = [];
+      }
+      // Push the new comment
+      existingPost.comments.push({ id, comment, date, replies });
+    },
+    replyAdded(state,action){
+      const {postId,commentId,reply,date,id}=action.payload
+      const existingPost=state.find((post)=>post.id===postId)
+      const existingComment = existingPost.comments.find((comment)=>comment.id===commentId)
+      if(existingComment){
+        existingComment.replies.push({id,reply,date})
       }
     }
   },
 });
 
-export const { postAdded, postUpdated, reactionAdded ,commentAdded} = postSlice.actions;
+export const { postAdded, postUpdated, reactionAdded ,commentAdded,replyAdded} = postSlice.actions;
 export default postSlice.reducer;
 
 //custom Hook
